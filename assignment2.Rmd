@@ -1,7 +1,7 @@
 ---
 title: "Data analysis assignment 2"
-author: "[add your name here]"
-date: "[add date here]"
+author: "[Adam Davies, 680019681]"
+date: "[09/02/2020]"
 output: github_document
 ---
 
@@ -23,10 +23,14 @@ We will work with three different tables: household roster from wave 8 (*h_egoal
 
 ```{r}
 library(tidyverse)
+
+setwd("C:/Users/Adam/OneDrive/Documents/assignment-2-ad700-bit")
+getwd()
+
 # You need to complete the paths to these files on your computer.
-Egoalt8 <- read_tsv("...h_egoalt.tab")
-Stable <- read_tsv("...xwavedat.tab")
-Hh8 <- read_tsv("...h_hhresp.tab")
+Egoalt8 <- read_tsv("h_egoalt.tab")
+Stable <- read_tsv("xwavedat.tab")
+Hh8 <- read_tsv("h_hhresp.tab")
 ```
 
 ## Filter household roster data (10 points)
@@ -37,8 +41,9 @@ First we want to select only pairs of individuals who are husbands and wives or 
 
 ```{r}
 Partners8 <- Egoalt8 %>%
-        filter(...) %>%
-        select(...)
+        filter(h_relationship %in% c("1","2")) %>%
+        select(pidp, apidp, h_hidp, h_relationship_dv, h_sex, h_asex)
+
 ```
 
 Each couple now appears in the data twice: 1) with one partner as ego and the other as alter, 2) the other way round. Now we will only focus on heterosexual couples, and keep one observation per couple with women as egos and men as their alters.
@@ -46,9 +51,11 @@ Each couple now appears in the data twice: 1) with one partner as ego and the ot
 ```{r}
 Hetero8 <- Partners8 %>%
         # filter out same-sex couples
-        filter(...) %>%
+        filter(h_sex == 1, .preserve = FALSE) %>%
         # keep only one observation per couple with women as egos
-        filter(...)
+        filter(h_asex == 2)
+
+?filter
 ```
 
 ## Recode data on ethnicity (10 points)
@@ -57,7 +64,7 @@ In this assignment we will explore ethnic endogamy, i.e. marriages and partnersh
 
 ```{r}
 Stable2 <- Stable %>%
-        select(...)
+        select(pidp, racel_dv)
 ```
 
 Let's code missing values on ethnicity (-9) as NA.
@@ -71,7 +78,7 @@ Now let us recode the variable on ethnicity into a new binary variable with the 
 
 ```{r}
 Stable2 <- Stable2 %>%
-        mutate(race = ...)
+        name(race) <- mutate(ifelse(racel_dv <= 4, "White","Non-White")) 
 ```
 
 ## Join data (30 points)
@@ -80,7 +87,9 @@ Now we want to join data from the household roster (*Hetero8*) and the data tabl
 
 ```{r}
 JoinedEthn <- Hetero8 %>%
-        ...
+  left_join(Stable2, copy = FALSE, suffix = c("pidp", "pidp"))
+
+?left_join
 ```
 
 Let us rename the variables for ethnicity to clearly indicate that they refer to egos.
@@ -96,6 +105,7 @@ Now let us merge in the data on alter's ethnicity. Note that in this case the ke
 ```{r}
 JoinedEthn <- JoinedEthn %>%
         ...
+?left_join
 ```
 
 Renaming the variables for alters.
